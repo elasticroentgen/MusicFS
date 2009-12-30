@@ -8,6 +8,8 @@ use Fuse;
 use Data::Dumper;
 use MP3::Tag;
 
+$| = 1;
+
 ############ SETUP ############
 my $basedir = "/mnt/testaudio/";
 
@@ -99,7 +101,7 @@ sub my_getattr {
 	my $size = 0;
 
 	if ( $currentType eq 'file' ) {
-		$size = length( $lastAttredFile->{'content'} );
+		$size = -s $lastAttredFile->{'content'};
 	}
 
 	# letzte Aenderung
@@ -135,8 +137,19 @@ sub my_getdir {
 }
 
 sub my_read {
-	my ( $filename ) = @_;
-	return $lastAttredFile->{'content'};
+	my ( $filename, $reqsize, $offset ) = @_;
+	my $original_file = $lastAttredFile->{'content'};
+	open(ORG, $original_file);
+	binmode(ORG);
+	seek(ORG, $offset,1);
+
+	my $return;	
+	my $readed = read(ORG,$return,$reqsize);
+	
+	close(ORG);
+	print "==READING==>$original_file ($reqsize bytes from offset $offset >> $readed bytes readed)\n";
+	return $return;
+	
 }
 
 print "MusicFS 0.1\n";
@@ -171,8 +184,7 @@ foreach my $file (@basedir_content)
 		print " G: $genre";
 		print " Y: $year";
 		print "\n";
-	
-		
+			
 		if(!exists $filesystem->{root}->{content}->{genre}->{content}->{$genre})
 		{
 			$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{type} = 'dir';
@@ -187,12 +199,6 @@ foreach my $file (@basedir_content)
 	}
 	
 }
-print "Setup Filesystem\n";
-# Adding to Masterhash
-#$filesystem->{root}->{content}->{genre}->{content} => $genres;
-
-print $filesystem;
-
 
 Fuse::main(
 	mountpoint  => "/mnt/testmount",

@@ -53,7 +53,7 @@ my $filesystem = {
 			fsinfo =>
 			{
 				type => 'file',
-				content => 'MusicFS - 0 files in db\n'
+				content => 'MusicFS - No Files found in basedir\n'
 			}
 		}
 	}
@@ -116,7 +116,7 @@ sub my_getattr {
 	my $size = 0;
 
 	if ( $currentType eq 'file' && $filename ne '/') {
-		$size = -s $lastAttredFile->{'content'};
+		$size =  -s $lastAttredFile->{'content'};
 	}
 
 	# letzte Aenderung
@@ -153,18 +153,26 @@ sub my_getdir {
 
 sub my_read {
 	my ( $filename, $reqsize, $offset ) = @_;
-	my $original_file = $lastAttredFile->{'content'};
-	open(ORG, $original_file);
-	binmode(ORG);
-	seek(ORG, $offset,1);
-
-	my $return;	
-	my $readed = read(ORG,$return,$reqsize);
+	my $return;
 	
-	close(ORG);
-	print "==READING==>$original_file ($reqsize bytes from offset $offset >> $readed bytes readed)\n";
+	if($filename eq "/fsinfo")
+	{
+        $return = $lastAttredFile->{'content'};
+        print "==READING==> Filesystem Statisticsfile requested\n";
+	}
+    else
+    {
+        my $original_file = $lastAttredFile->{'content'};
+	    open(ORG, $original_file);
+	    binmode(ORG);
+	    seek(ORG, $offset,1);
+	    my $readed = read(ORG,$return,$reqsize);
+	
+	    close(ORG);
+	    print "==READING==>$original_file ($reqsize bytes from offset $offset >> $readed bytes readed)\n";
+    }
+		
 	return $return;
-	
 }
 
 print "MusicFS 0.1\n";
@@ -185,6 +193,11 @@ close(BASEDIR);
 my $genres = {};
 my $years = {};
 my $artists = {};
+
+my $count_files = 0;
+my $count_genres = 0;
+my $count_years = 0;
+my $count_artists = 0;
 
 foreach my $file (@basedir_content)
 {
@@ -208,23 +221,61 @@ foreach my $file (@basedir_content)
 		my $artist = $filetag->{ID3v1}->artist;
 		my $title = $filetag->{ID3v1}->title;
 		my $year = $filetag->{ID3v1}->year;
-	
+		my $album = $filetag->{ID3v1}->album;
+		my $track = $filetag->{ID3v1}->track;
+		
 		print "$artist - $title\n";
-			
+
+        $count_files++;
+		
+        #Genre	
+        if($genre eq "") { $genre = "unknown"; };
+        
 		if(!exists $filesystem->{root}->{content}->{genre}->{content}->{$genre})
 		{
 			$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{type} = 'dir';
+			$count_genres++;
 		}
-		$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{content}->{"$artist-$title.mp3"}->{type} = 'file';
-		$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{content}->{"$artist-$title.mp3"}->{content} = $file;
+		$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{content}->{"$artist - $title.mp3"}->{type} = 'file';
+		$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{content}->{"$artist - $title.mp3"}->{content} = $file;
 
+        #Year
+        if($year eq "") { $year = "unknown"; };
+        
+		if(!exists $filesystem->{root}->{content}->{year}->{content}->{$year})
+		{
+			$filesystem->{root}->{content}->{year}->{content}->{$year}->{type} = 'dir';
+			$count_years++;
+		}
+		$filesystem->{root}->{content}->{year}->{content}->{$year}->{content}->{"$artist - $title.mp3"}->{type} = 'file';
+		$filesystem->{root}->{content}->{year}->{content}->{$year}->{content}->{"$artist - $title.mp3"}->{content} = $file;
+		
+		#####Artist######
+        if($album eq "") { $album = "unknown"; };
+        if($track eq "") { $track = "NA"; };
+        
+		if(!exists $filesystem->{root}->{content}->{artist}->{content}->{$artist})
+		{
+			$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{type} = 'dir';
+			$count_artists++;
+		}
+		# Create Album folder
+		if(!exists $filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album})
+		{
+			$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album}->{type} = 'dir';
+		}
+		
+		$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album}->{content}->{"$track - $title.mp3"}->{type} = 'file';
+		$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album}->{content}->{"$track - $title.mp3"}->{content} = $file;
 	}
 	else
 	{	
 		print "No IDv1 Tag. Skipping file!\n";
 	}
-	
+    $filesystem->{root}->{content}->{fsinfo}->{content} = "MusicFS Stats: Got $count_files Files in $count_genres genres from $count_artists Artists\n";	
 }
+
+print "==READY==>" . $filesystem->{root}->{content}->{fsinfo}->{content};
 
 Fuse::main(
 	mountpoint  => $mountpoint,

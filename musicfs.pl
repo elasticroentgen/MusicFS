@@ -29,6 +29,7 @@ $| = 1;
 
 ############ SETUP ############
 my $basedir = "/home/thereapman/Netz/Musik/";
+my $mountpoint = "/mnt/testmnt";
 
 ############ DON'T EDIT BELOW THIS LINE  ############
 
@@ -226,7 +227,7 @@ foreach my $file (@basedir_content)
 }
 
 Fuse::main(
-	mountpoint  => "/mnt/testmnt",
+	mountpoint  => $mountpoint,
 	getdir		=> \&my_getdir,
 	getattr		=> \&my_getattr,
 	read		=> \&my_read,

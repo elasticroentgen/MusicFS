@@ -11,7 +11,7 @@ use MP3::Tag;
 $| = 1;
 
 ############ SETUP ############
-my $basedir = "/mnt/testaudio/";
+my $basedir = "/home/thereapman/Netz/Musik/";
 
 ############ DON'T EDIT BELOW THIS LINE  ############
 

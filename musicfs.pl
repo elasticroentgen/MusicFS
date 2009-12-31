@@ -28,8 +28,8 @@ use MP3::Tag;
 $| = 1;
 
 ############ SETUP ############
-my $basedir = "/mnt/testaudio/";
-my $mountpoint = "/mnt/testmnt";
+#my $basedir = "/mnt/testaudio/";
+#my $mountpoint = "/mnt/testmnt";
 
 ############ DON'T EDIT BELOW THIS LINE  ############
 
@@ -182,6 +182,11 @@ sub my_read {
 }
 
 print "MusicFS 0.1\n";
+
+my $basedir = shift(@ARGV);
+my $mountpoint = shift(@ARGV);
+
+
 print "Reading Basedirectory...\n";
 
 my @basedir_content;

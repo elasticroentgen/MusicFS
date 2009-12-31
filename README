@@ -15,6 +15,9 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
+INTRODUCTION
+============
+MusicFS provides an FUSE-Filesystem that is build from ID3-Tags with different categories.
 
 REQUIREMENTS
 =============
@@ -23,4 +26,15 @@ REQUIREMENTS
 - Perl module MP3::Tag
 - Fuse
 
+USAGE
+=====
+perl musicfs.pl <basedir> <moutpoint>
+
+<basedir> - where your audiofiles are located (will readed recursive)
+<mountpoint> - where to mount the musicfs
+
+KNOWN ISSUES/LIMITATIONS
+========================
+- only MPEG1 Layer3-Audiofiles are readed
+- The MP3-Files need to have an IDv1 Tag. IDv2 is not supported yet.
 

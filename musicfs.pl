@@ -28,7 +28,7 @@ use MP3::Tag;
 $| = 1;
 
 ############ SETUP ############
-my $basedir = "/home/thereapman/Netz/Musik/";
+my $basedir = "/mnt/testaudio/";
 my $mountpoint = "/mnt/testmnt";
 
 ############ DON'T EDIT BELOW THIS LINE  ############
@@ -96,6 +96,7 @@ sub my_getattr {
 		$type = 0040;
 		$bits = 0555;
 	} 
+	
 	#my $mode = $type << 9 | $bits;
 	my $mode = $type << 9 | $bits;
 	my $nlink = 1;
@@ -115,8 +116,13 @@ sub my_getattr {
 	# Groeße
 	my $size = 0;
 
-	if ( $currentType eq 'file' && $filename ne '/') {
+	if ( $currentType eq 'file' && $filename ne '/' && $filename ne '/fsinfo')  {
 		$size =  -s $lastAttredFile->{'content'};
+	}
+
+	if ( $filename eq '/fsinfo' )
+	{
+		$size = length($lastAttredFile->{'content'});
 	}
 
 	# letzte Aenderung

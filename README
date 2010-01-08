@@ -28,13 +28,15 @@ REQUIREMENTS
 
 USAGE
 =====
-perl musicfs.pl <basedir> <moutpoint>
+perl musicfs.pl <basedir> <moutpoint> [debug]
 
 <basedir> - where your audiofiles are located (will readed recursive)
 <mountpoint> - where to mount the musicfs
+debug - enables debugoutput to STDOUT. Develop only. Produces very much output.
 
 KNOWN ISSUES/LIMITATIONS
 ========================
 - only MPEG1 Layer3-Audiofiles are readed
-- The MP3-Files need to have an IDv1 Tag. IDv2 is not supported yet.
+- IDv2 is not supported yet. Only IDv1 Tags.
+
 

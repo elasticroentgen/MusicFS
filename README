@@ -17,7 +17,11 @@
 
 INTRODUCTION
 ============
-MusicFS provides an FUSE-Filesystem that is build from ID3-Tags with different categories.
+MusicFS provides an FUSE-Filesystem that is build from Audiofile-Metadata with different categories.
+
+FEATURES
+========
+- reads Metadata from mp3 and ogg-files
 
 REQUIREMENTS
 =============

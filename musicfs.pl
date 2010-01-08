@@ -24,6 +24,7 @@ use POSIX;
 use Fuse;
 use Data::Dumper;
 use MP3::Tag;
+use Ogg::Vorbis::Header;
 
 $| = 1;
 my $debug = "";
@@ -199,17 +200,26 @@ if (!defined($debug))
 
 &print_debug("Reading Basedirectory...\n");
 
-my @basedir_content;
+my @basedir_content_mp3;
+my @basedir_content_ogg;
 
-open(BASEDIR, "find $basedir -name *.mp3|");
+open(BASEDIR_MP3, "find $basedir -name *.mp3|");
+open(BASEDIR_OGG, "find $basedir -name *.ogg|");
 
-while(<BASEDIR>)
+while(<BASEDIR_MP3>)
 {
     chop();
-    push(@basedir_content, $_);    
+    push(@basedir_content_mp3, $_);    
 }
 
-close(BASEDIR);
+while(<BASEDIR_OGG>)
+{
+    chop();
+    push(@basedir_content_ogg, $_);    
+}
+
+close(BASEDIR_MP3);
+close(BASEDIR_OGG);
 
 my $genres = {};
 my $years = {};
@@ -220,7 +230,9 @@ my $count_genres = 0;
 my $count_years = 0;
 my $count_artists = 0;
 
-foreach my $file (@basedir_content)
+&print_debug("==PROCESSING MPEG1 Layer3 Files==\n");
+
+foreach my $file (@basedir_content_mp3)
 {
 	if($file eq ".." || $file eq ".")
 	{
@@ -295,6 +307,93 @@ foreach my $file (@basedir_content)
 	}
     $filesystem->{root}->{content}->{fsinfo}->{content} = "MusicFS Stats: Got $count_files Files in $count_genres genres from $count_artists Artists\n";	
 }
+
+
+&print_debug("==PROCESSING OGG Vorbis Files==\n");
+foreach my $file (@basedir_content_ogg)
+{
+	if($file eq ".." || $file eq ".")
+	{
+		next;
+	}
+    
+    &print_debug("==ADDING==>");
+	my $filetag = Ogg::Vorbis::Header->new($file);
+    if(!defined $filetag)
+    {
+        &print_debug("No readable Tag. Skipping file!\n");
+        next;
+    }
+
+ 	my @genre_a = $filetag->comment("GENRE");
+	my @artist_a = $filetag->comment("ARTIST");
+	my @title_a = $filetag->comment("TITLE");
+	my @year_a = $filetag->comment("YEAR");
+	my @album_a = $filetag->comment("ALBUM");
+	my @track_a = $filetag->comment("TRACKNUMBER");
+	
+	my $genre = $genre_a[0];
+	my $artist = $artist_a[0];
+	my $title = $title_a[0];
+	my $year = $year_a[0];
+	my $album = $album_a[0];
+	my $track = $track_a[0];
+					
+	
+	&print_debug("$artist - $title\n");
+
+    $count_files++;
+	
+    #Genre	
+    if(!defined $genre) { $genre = "unknown"; };
+    if(!defined $year) { $year = "unknown"; };
+    
+	if(!exists $filesystem->{root}->{content}->{genre}->{content}->{$genre})
+	{
+		$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{type} = 'dir';
+		$count_genres++;
+	}
+	$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{content}->{"$artist - $title.ogg"}->{type} = 'file';
+	$filesystem->{root}->{content}->{genre}->{content}->{$genre}->{content}->{"$artist - $title.ogg"}->{content} = $file;
+
+    #Year
+    if($year eq "") { $year = "unknown"; };
+    
+	if(!exists $filesystem->{root}->{content}->{year}->{content}->{$year})
+	{
+		$filesystem->{root}->{content}->{year}->{content}->{$year}->{type} = 'dir';
+		$count_years++;
+	}
+	$filesystem->{root}->{content}->{year}->{content}->{$year}->{content}->{"$artist - $title.ogg"}->{type} = 'file';
+	$filesystem->{root}->{content}->{year}->{content}->{$year}->{content}->{"$artist - $title.ogg"}->{content} = $file;
+	
+	#####Artist######
+    if($album eq "") { $album = "unknown"; };
+    if($track eq "") { $track = "NA"; };
+    
+	if(!exists $filesystem->{root}->{content}->{artist}->{content}->{$artist})
+	{
+		$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{type} = 'dir';
+		$count_artists++;
+	}
+	# Create Album folder
+	if(!exists $filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album})
+	{
+		$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album}->{type} = 'dir';
+	}
+	
+	$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album}->{content}->{"$track - $title.ogg"}->{type} = 'file';
+	$filesystem->{root}->{content}->{artist}->{content}->{$artist}->{content}->{$album}->{content}->{"$track - $title.ogg"}->{content} = $file;
+
+    $filesystem->{root}->{content}->{fsinfo}->{content} = "MusicFS Stats: Got $count_files Files in $count_genres genres from $count_artists Artists\n";	
+}
+
+
+
+
+
+
+
 
 &print_debug("==READY==>" . $filesystem->{root}->{content}->{fsinfo}->{content});
 

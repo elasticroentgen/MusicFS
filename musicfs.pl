@@ -26,6 +26,8 @@ use Data::Dumper;
 use MP3::Tag;
 
 $| = 1;
+my $debug = "";
+
 
 my $filesystem = {
 	root =>
@@ -57,7 +59,7 @@ my $lastAttredFile;
 
 sub my_getattr {
 	my ( $filename ) = @_;
-	print "==ATTRIBUTES==>$filename ";
+	&print_debug("==ATTRIBUTES==>$filename ");
 
 	# regulaere Datei
 	my $type = 0100;
@@ -76,7 +78,7 @@ sub my_getattr {
 		foreach my $pathElement ( @pathElements[1..$#pathElements] ) {
 
 			if ( !defined( $current->{$pathElement} ) ) {
-                print "not found!\n";
+                &print_debug("not found!\n");
 				return -1*ENOENT;
 			}
 			$currentType = $current->{$pathElement}->{'type'};
@@ -130,13 +132,13 @@ sub my_getattr {
 	
 	my $dev = 0;
 	my $ino = 0;
-    print "is a $currentType of size $size Bytes\n";
+    &print_debug("is a $currentType of size $size Bytes\n");
 	return ( $dev, $ino, $mode, $nlink, $uid, $gid, $rdev, $size, $atime, $mtime, $ctime, $blksize,	$blocks	);
 }
 
 sub my_getdir {
 	my ( $filename ) = @_;
-	print "==GETDIR==>$filename\n";
+	&print_debug("==GETDIR==>$filename\n");
 
 	my $current = $filesystem->{'root'}->{'content'};
 	my @pathElements = split( '/', $filename );
@@ -158,7 +160,7 @@ sub my_read {
 	if($filename eq "/fsinfo")
 	{
         $return = $lastAttredFile->{'content'};
-        print "==READING==> Filesystem Statisticsfile requested\n";
+        &print_debug("==READING==> Filesystem Statisticsfile requested\n");
 	}
     else
     {
@@ -169,19 +171,33 @@ sub my_read {
 	    my $readed = read(ORG,$return,$reqsize);
 	
 	    close(ORG);
-	    print "==READING==>$original_file ($reqsize bytes from offset $offset >> $readed bytes readed)\n";
+	    &print_debug("==READING==>$original_file ($reqsize bytes from offset $offset >> $readed bytes readed)\n");
     }
 		
 	return $return;
 }
 
-print "MusicFS 0.1\n";
+
+sub print_debug {
+	if($debug eq "debug")
+	{
+		my $msg = shift();
+		print $msg;
+	}
+
+}
+
+&print_debug("MusicFS 0.1\n");
 
 my $basedir = shift(@ARGV);
 my $mountpoint = shift(@ARGV);
+$debug = shift(@ARGV);
+if (!defined($debug))
+{
+	$debug = "";
+}
 
-
-print "Reading Basedirectory...\n";
+&print_debug("Reading Basedirectory...\n");
 
 my @basedir_content;
 
@@ -211,11 +227,11 @@ foreach my $file (@basedir_content)
 		next;
 	}
     
-    print "==ADDING==>";
+    &print_debug("==ADDING==>");
 	my $filetag = MP3::Tag->new($file);
     if(!defined $filetag)
     {
-        print "No readable Tag. Skipping file!\n";
+        &print_debug("No readable Tag. Skipping file!\n");
         next;
     }
 
@@ -229,7 +245,7 @@ foreach my $file (@basedir_content)
 		my $album = $filetag->{ID3v1}->album;
 		my $track = $filetag->{ID3v1}->track;
 		
-		print "$artist - $title\n";
+		&print_debug("$artist - $title\n");
 
         $count_files++;
 		
@@ -275,12 +291,12 @@ foreach my $file (@basedir_content)
 	}
 	else
 	{	
-		print "No IDv1 Tag. Skipping file!\n";
+		&print_debug("No IDv1 Tag. Skipping file!\n");
 	}
     $filesystem->{root}->{content}->{fsinfo}->{content} = "MusicFS Stats: Got $count_files Files in $count_genres genres from $count_artists Artists\n";	
 }
 
-print "==READY==>" . $filesystem->{root}->{content}->{fsinfo}->{content};
+&print_debug("==READY==>" . $filesystem->{root}->{content}->{fsinfo}->{content});
 
 Fuse::main(
 	mountpoint  => $mountpoint,

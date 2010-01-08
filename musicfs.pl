@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #   MusicFS - A FUSE-Filesystem for Audiofiles written in Perl
-#   Copyright (C) 2009  Markus Keil markuskeil@thereapman.net
+#   Copyright (C) 2009  Markus Keil <markuskeil@thereapman.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ use strict;
 
 use POSIX;
 use Fuse;
-use Data::Dumper;
 use MP3::Tag;
 use Ogg::Vorbis::Header;
 
@@ -347,6 +346,7 @@ foreach my $file (@basedir_content_ogg)
     #Genre	
     if(!defined $genre) { $genre = "unknown"; };
     if(!defined $year) { $year = "unknown"; };
+
     
 	if(!exists $filesystem->{root}->{content}->{genre}->{content}->{$genre})
 	{

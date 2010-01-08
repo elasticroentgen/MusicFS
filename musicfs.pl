@@ -27,12 +27,6 @@ use MP3::Tag;
 
 $| = 1;
 
-############ SETUP ############
-#my $basedir = "/mnt/testaudio/";
-#my $mountpoint = "/mnt/testmnt";
-
-############ DON'T EDIT BELOW THIS LINE  ############
-
 my $filesystem = {
 	root =>
 	{

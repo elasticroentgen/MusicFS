@@ -1,5 +1,5 @@
    MusicFS - A FUSE-Filesystem for Audiofiles written in Perl
-   Copyright (C) 2009  Markus Keil markuskeil <at> thereapman <dot> net
+   Copyright (C) 2009  Markus Keil <markuskeil@thereapman.net>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,8 @@ REQUIREMENTS
 =============
 - Perl 5.10
 - Perl Module Fuse
-- Perl module MP3::Tag
+- Perl Module MP3::Tag
+- Perl Module Ogg::Vorbis::Header
 - Fuse
 
 USAGE
@@ -36,7 +37,6 @@ debug - enables debugoutput to STDOUT. Develop only. Produces very much output.
 
 KNOWN ISSUES/LIMITATIONS
 ========================
-- only MPEG1 Layer3-Audiofiles are readed
-- IDv2 is not supported yet. Only IDv1 Tags.
+- IDv2 is not supported yet for MP3-Files. Only IDv1 Tags.
 
 
